@@ -4,17 +4,17 @@
       <div class="title">借多少</div>
       <div class="num">
         <span>¥</span>
-        <input type="number" value="1000" placeholder="请输入你的借款金额"/>
+        <input type="number" value=""  v-model="amount" placeholder="请输入你的借款金额"/>
       </div>
     </div>
     <div class="main">
       <div class="use" @click="usepopup">
         <span class="name">借款用途</span>
-        <span class="info">{{usename}}</span>
+        <span class="info">{{purposes}}</span>
       </div>
       <div class="use" @click="stagesPop">
         <span class="name">分期期数</span>
-        <span class="info">{{stagesName}}</span>
+        <span class="info">{{installmentNumber}}</span>
       </div>
       <div class="use">
         <span class="name">还款方式</span>
@@ -23,8 +23,8 @@
       <div class="plan" >
         <router-link to="/repayment">
           <div class="plan-name">还款计划</div>
-          <div class="money">359.00元</div>
-          <div class="time">2019-04-04</div>
+          <div class="money">{{Monthlysupply}}元</div>
+          <div class="time">{{repaymenttime}}</div>
         </router-link>
       </div>
       <div class="tip">试算结果仅供参考，具体以您签署的借款文件</div>
@@ -43,8 +43,10 @@
     <div class="info-tip">
       <img v-if="!isRadioimg" @click="radioimg" src="../../../assets/image/radio-t.png">
       <img v-if="isRadioimg" @click="radioimg" src="../../../assets/image/radio-f.png">
-      <div>我已详细阅读并同意<span>《爱尚平台服务及合同》</span></div></div>
-    <router-link class="button"  to="/code">确定</router-link>
+      <div>我已详细阅读并同意<span>《爱尚平台服务及合同》</span></div>
+    </div>
+    <!--<router-link class="button"  to="/code">确定</router-link>-->
+    <div class="button" @click="clickSubmitInfo">确定</div>
 
     <!--借款用途弹出框-->
     <div class="Popup-bg" v-if="popup">
@@ -52,7 +54,7 @@
         <div class="box-pop">
           <div class="title">请选择实际资金用途</div>
           <ul>
-            <li  v-for="(data,index) in arrData" :key="index"  @click="getDataId(data.name)">{{data.name}}</li>
+            <li v-for="(data,index) in arrData" :key="index"  @click="getDataId(data)">{{data}}</li>
           </ul>
         </div>
         <div class="cancel" @click="cancel">取消</div>
@@ -65,7 +67,7 @@
           <div class="box-pop">
             <div class="title">选择任意期限都可以提前还</div>
             <ul>
-              <li v-for="(data,index) in stagesData" :key="index"  @click="getDatastages(data.name)">{{data.name}}</li>
+              <li v-for="(data,index) in stagesData" :key="index"  @click="getDatastages(data)">{{data}}</li>
             </ul>
           </div>
           <div class="cancel" @click="strcancel">取消</div>
@@ -81,41 +83,46 @@ export default {
   data () {
     return {
       isRadioimg: true,
-      usename: '个人日常消费',
-      arrData: [
-        {
-          name: '个人日常消费'
-        },
-        {
-          name: '装修'
-        },
-        {
-          name: '旅游'
-        },
-        {
-          name: '教育'
-        },
-        {
-          name: '医疗'
-        }
-      ],
+      arrData: [],
       popup: false,
-      stagesName: '12个月',
-      stagesData: [
-        {
-          name: '3个月'
-        },
-        {
-          name: '9个月'
-        },
-        {
-          name: '12个月'
-        }
-      ],
-      strpopup: false
+      stagesData: [],
+      strpopup: false,
+      amount: '1000',
+      purposes: '个人日常消费',
+      installmentNumber: '12个月',
+      reimbursementMeans: '4',
+      repaymentPlan: '5',
+      bankCard: '6',
+      Monthlysupply: '',
+      repaymenttime: ''
+    }
+  },
+  watch: {
+    // 如果 `amount` 发生改变，这个函数就会运行
+    amount: function () {
+      this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
     }
   },
   methods: {
+    clickSubmitInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/borrowsing', {
+        amount: this.amount,
+        purposes: this.purposes,
+        installmentNumber: this.installmentNumber,
+        reimbursementMeans: this.reimbursementMeans,
+        repaymentPlan: this.repaymentPlan,
+        bankCard: this.bankCard
+      })
+        .then(this.getMainInfoSucc)
+        .catch(this.getMaininfoerror)
+    },
+    getMainInfoSucc (res) {
+      res = res.data
+    },
+    getMaininfoerror (res) {
+      this.$toast('网络错误')
+    },
     // 选取radio
     radioimg () {
       if (this.isRadioimg === true) {
@@ -134,7 +141,7 @@ export default {
     },
     // 选取借款用途
     getDataId (name) {
-      this.usename = name
+      this.purposes = name
       this.popup = false
     },
     // 分期弹框
@@ -145,9 +152,60 @@ export default {
       this.strpopup = false
     },
     getDatastages (name) {
-      this.stagesName = name
+      console.log(name.replace(/[\u4e00-\u9fa5]/g, ''))
+      this.installmentNumber = name
       this.strpopup = false
+      this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
+    },
+    // /*借款用途条件*/
+    loanUsageInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.get(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/borrowsingPurposes', {
+        token: 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDVVNUMjAxODExMjcxOTQyMzkxNjAxOCIsImF1ZCI6IlNTWCIsImlzcyI6Imx4bCIsImlhdCI6MTU1Mzg0MjkyNCwiZXhwIjoxNTU0NDQ3NzI0LCJhdXRob3JpdGllcyI6W10sImFwcGlkcyI6WyJDQVNIX0xPQU4iLCIzIiwiQ01TX0NFTlRFUiJdfQ.vcqBjAPtw7j1PQl4Hd4YVFqjvCjqlLPPRriE_Fib0qWxxeta2Ive11kingFctuQy3YayQKey8Mqir_AQfMDtDQ'
+      })
+        .then(this.loanUsageInfoSucc)
+        .catch(this.loanUsageInfoerror)
+    },
+    loanUsageInfoSucc (res) {
+      res = res.data
+      this.arrData = res.data
+    },
+    loanUsageInfoerror (res) {
+      this.$toast('网络错误')
+    },
+    // 分期期数
+    installmentsInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.get(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/installmentNumber', {
+        token: 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDVVNUMjAxODExMjcxOTQyMzkxNjAxOCIsImF1ZCI6IlNTWCIsImlzcyI6Imx4bCIsImlhdCI6MTU1Mzg0MjkyNCwiZXhwIjoxNTU0NDQ3NzI0LCJhdXRob3JpdGllcyI6W10sImFwcGlkcyI6WyJDQVNIX0xPQU4iLCIzIiwiQ01TX0NFTlRFUiJdfQ.vcqBjAPtw7j1PQl4Hd4YVFqjvCjqlLPPRriE_Fib0qWxxeta2Ive11kingFctuQy3YayQKey8Mqir_AQfMDtDQ'
+      })
+        .then(this.installmentsInfoSucc)
+        .catch(this.installmentsInfoerror)
+    },
+    installmentsInfoSucc (res) {
+      res = res.data
+      this.stagesData = res.data
+      console.log(this.stagesData)
+    },
+    installmentsInfoerror (res) {
+      this.$toast('网络错误')
     }
+  },
+  mounted () {
+    var date = new Date()
+    var year = date.getFullYear()
+    var month = date.getMonth() + 1
+    var day = date.getDate()
+    if (month < 10) {
+      month = '0' + (month + 1)
+    }
+    if (day < 10) {
+      day = '0' + day
+    }
+    this.repaymenttime = year + '-' + month + '-' + day
+    this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
+    this.loanUsageInfo()
+    this.installmentsInfo()
   }
 }
 </script>

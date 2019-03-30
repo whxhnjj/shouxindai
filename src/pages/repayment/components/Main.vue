@@ -3,13 +3,13 @@
   <div class="tip">试算结果仅供参考，具体以您签署的借款文件</div>
   <div class="header">
     <div class="title">待还总额(元)</div>
-    <div class="num">5000.00</div>
+    <div class="num">{{amountCount}}</div>
   </div>
   <div class="main">
-    <div class="box" v-for="item of arrData" :key="item.index">
-      <div class="periods"><span>{{item.num}}</span>/{{item.moun}}期</div>
-      <div class="date">还款日{{item.date}}</div>
-      <div class="money">{{item.money}}</div>
+    <div class="box" v-for="(item, index) in arrData" :key="item.index">
+      <div class="periods"><span>{{index+1}}</span>/{{arrData.length}}期</div>
+      <div class="date">还款日{{item}}</div>
+      <div class="money">{{amount}}</div>
     </div>
   </div>
 </div>
@@ -20,45 +20,34 @@ export default {
   name: 'Main',
   data () {
     return {
-      arrData: [
-        {
-          num: '1',
-          moun: '6',
-          date: '2018-5-06',
-          money: '800.66'
-        },
-        {
-          num: '2',
-          moun: '6',
-          date: '2018-8-06',
-          money: '800.66'
-        },
-        {
-          num: '3',
-          moun: '6',
-          date: '2018-10-06',
-          money: '800.66'
-        },
-        {
-          num: '4',
-          moun: '6',
-          date: '2018-11-06',
-          money: '800.66'
-        },
-        {
-          num: '5',
-          moun: '6',
-          date: '2019-10-06',
-          money: '800.66'
-        },
-        {
-          num: '6',
-          moun: '6',
-          date: '2019-2-06',
-          money: '800.66'
-        }
-      ]
+      amountCount: '',
+      arrData: []
     }
+  },
+  methods: {
+    readInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/repaymentPlan', {
+        amount: '5099',
+        installmentNumber: '12',
+        reimbursementMeans: '等额本息'
+      })
+        .then(this.getMainInfoSucc)
+        .catch(this.getMaininfoerror)
+    },
+    getMainInfoSucc (res) {
+      res = res.data
+      console.log(res)
+      this.amountCount = res.data.amountCount
+      this.amount = res.data.amount
+      this.arrData = res.data.dateList
+    },
+    getMaininfoerror (res) {
+      this.$toast('网络错误')
+    }
+  },
+  mounted () {
+    this.readInfo()
   }
 }
 </script>
