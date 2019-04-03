@@ -358,7 +358,7 @@ export default {
   position:absolute;
   bottom:0;
   left:0;
-  z-index:121;
+  z-index:999999;
   background:#fff;
   width:100%;
   height: 0;

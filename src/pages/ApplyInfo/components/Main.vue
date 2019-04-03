@@ -36,11 +36,12 @@
     </div>
     <div class="info-card-img">
       <div class="card-img-left">
-        <input type="file" id="uploadFile" accept="image/*" name="avatar" @change="changeImage($event)" ref="avatarInput" capture="camera" />
+        <input type="file"  accept="image/*" name="avatar" @change="changeImagePositive($event)" ref="avatarInput" capture="camera" />
         <img :src="avatar"  />
       </div>
       <div class="card-img-right">
-        <img src="../../../assets/image/ic_fan.png" />
+        <input type="file" accept="image/*" name="avatar" @change="changeImageCon($event)" ref="avatarInput" capture="camera" />
+        <img :src="avatarfan"  />
       </div>
     </div>
     <div class="tip-info-content">
@@ -83,15 +84,18 @@ export default {
       livingDistrict: '现居住莲湖区',
       livingAddress: '现居住详细地址',
       alternatePhone: '15529561324',
-      idCardBackImg: '身份证正面照',
-      idCardFrontImg: '身份证反面照',
+      idCardBackImg: '',
+      idCardFrontImg: '',
       isRadioimg: true,
       isapplyradioimg: true,
-      avatar: require('../../../assets/image/ic_zheng.png')
+      avatar: require('../../../assets/image/ic_zheng.png'),
+      avatarfan: require('../../../assets/image/ic_fan.png'),
+      iccardzheng: ''
     }
   },
   methods: {
-    changeImage (e) {
+    // 上传身份证正面
+    changeImagePositive (e) {
       var file = e.target.files[0]
       var reader = new FileReader()
       var that = this
@@ -99,6 +103,48 @@ export default {
       reader.onload = function (e) {
         that.avatar = this.result
       }
+      let param = new FormData()
+      param.append('moduleName', 'H5')
+      param.append('version', '3.0')
+      param.append('file', file, file.name)
+      let config = {
+        headers: {'Content-Type': 'multipart/form-data'}
+      }
+      this.axios.post('http://fileserver.test.api.aishangjinrong.com/attachment/v1.4', param, config)
+        .then(response => {
+          this.idCardBackImg = response.data.data[0].filePath
+          this.$toast('身份证正面上传成功')
+        })
+        .catch(response => {
+          this.$toast('网络错误')
+          console.log(response)
+        })
+    },
+    // 上传身份证反面
+    changeImageCon (e) {
+      var file = e.target.files[0]
+      var reader = new FileReader()
+      var that = this
+      reader.readAsDataURL(file)
+      reader.onload = function (e) {
+        that.avatarfan = this.result
+      }
+      let param = new FormData()
+      param.append('moduleName', 'H5')
+      param.append('version', '3.0')
+      param.append('file', file, file.name)
+      let config = {
+        headers: {'Content-Type': 'multipart/form-data'}
+      }
+      this.axios.post('http://fileserver.test.api.aishangjinrong.com/attachment/v1.4', param, config)
+        .then(response => {
+          this.idCardFrontImg = response.data.data[0].filePath
+          this.$toast('身份证反面上传成功')
+        })
+        .catch(response => {
+          this.$toast('网络错误')
+          console.log(response)
+        })
     },
     // 获取家庭子组件传来选中的省市区
     FamilyeventFromChild (data) {
@@ -129,7 +175,20 @@ export default {
       }
     },
     clickSubmitInfo () {
+      if (this.idCardBackImg === '' || this.idCardFrontImg === '') {
+        this.$toast.center('请上传身份证正反面！')
+        return
+      }
+      if (this.isRadioimg === true) {
+        this.$toast.center('请勾选《小雨点信息授权函》')
+        return
+      }
+      if (this.isapplyradioimg === true) {
+        this.$toast.center('请勾选《爱尚协议支付及合同》')
+        return
+      }
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
       this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/assess/application', {
         userName: this.userName,
         phone: this.phone,
@@ -245,10 +304,21 @@ export default {
     width: 3.13rem;
     height: 2.12rem;
     float: right;
+    position: relative;
   }
   .card-img-right img{
     width: 3.13rem;
     height: 2.12rem;
+    position: absolute;
+    right: 0;
+  }
+  .card-img-right input{
+    width: 3.13rem;
+    height: 2.12rem;
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    z-index: 999;
   }
   .tip-info-content{
     padding: .34rem .32rem;

@@ -8,7 +8,7 @@
       <div class="list" v-for="item of main" :key="item.index">
         <img :src="item.logo" />
         <div class="card">
-          <div>{{item.bankName}}<span>({{item.bankName}}{{item.bankCardnumber}})</span></div>
+          <div>{{item.bankName}}<span>({{item.bankName}}{{item.bankCardNumberSuffix}})</span></div>
           <i>预计两小时到账</i>
         </div>
       </div>
@@ -30,7 +30,7 @@ export default {
   methods: {
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
-      this.axios.defaults.headers.post['token'] = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDVVNUMjAxODExMjcxOTQyMzkxNjAxOCIsImF1ZCI6IlNTWCIsImlzcyI6Imx4bCIsImlhdCI6MTU1Mzg0MjkyNCwiZXhwIjoxNTU0NDQ3NzI0LCJhdXRob3JpdGllcyI6W10sImFwcGlkcyI6WyJDQVNIX0xPQU4iLCIzIiwiQ01TX0NFTlRFUiJdfQ.vcqBjAPtw7j1PQl4Hd4YVFqjvCjqlLPPRriE_Fib0qWxxeta2Ive11kingFctuQy3YayQKey8Mqir_AQfMDtDQ'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
       this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/bankNoList', {
       })
         .then(this.getMainInfoSucc)
@@ -54,6 +54,11 @@ export default {
 <style scoped>
   .main{
     height: 6.03rem;
+  }
+  .list{
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
   .main img{
     width: 3.62rem ;

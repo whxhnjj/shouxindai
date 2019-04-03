@@ -5,19 +5,11 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: '/',
-      name: 'Home',
-      component: () => import('@/pages/home/Home'),
+      path: '/UpLoad',
+      name: 'UpLoad',
+      component: () => import('@/pages/UpLoad/UpLoad'),
       meta: {
-        title: '首页'
-      }
-    },
-    {
-      path: '/My',
-      name: 'My',
-      component: () => import('@/pages/My/My'),
-      meta: {
-        title: '我的'
+        title: '上传图片'
       }
     },
     {

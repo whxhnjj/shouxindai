@@ -2,16 +2,45 @@
   <div>
     <div class="main">
       <img src="../../../assets/image/success.png" />
-      <div class="title">放款中</div>
-      <div class="money">52000.00元</div>
-      <div class="tip">预计到账时间：03-07 15:20</div>
+      <div class="title">{{borrowStatus}}</div>
+      <div class="money">{{amount}}元</div>
+      <div class="tip">预计到账时间：{{insertTime}}</div>
     </div>
     <div class="button">返回(3)</div>
   </div>
 </template>
 <script>
 export default {
-  name: 'Main'
+  name: 'Main',
+  data () {
+    return {
+      amount: '',
+      insertTime: '',
+      borrowStatus: ''
+    }
+  },
+  methods: {
+    readInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/getBorrowResult', {
+      })
+        .then(this.getMainInfoSucc)
+        .catch(this.getMaininfoerror)
+    },
+    getMainInfoSucc (res) {
+      res = res.data.data
+      this.amount = res.amount
+      this.insertTime = res.insertTime
+      this.borrowStatus = res.borrowStatus
+    },
+    getMaininfoerror (res) {
+      this.$toast('网络错误')
+    }
+  },
+  mounted () {
+    this.readInfo()
+  }
 }
 </script>
 

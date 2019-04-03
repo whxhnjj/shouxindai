@@ -1,41 +1,43 @@
 <template>
   <div>
     <div class="header">
-      <span class="money">66666.555</span>
+      <span class="money">{{DetailsTitle}}</span>
       <span class="text">待还总额(元)</span>
     </div>
     <div class="main">
       <!--卡片列表-->
       <div  v-for="(item,index) in productList"  :key="item.index">
         <div class="list">
-          <span class="radio" @click='item.select=!item.select' :class="{'check-true':item.select}"></span>
+          <span class="radio" @click='clickSelect(item,index,productList)' :class="{'check-true':item.select,'check-dib':item.disable}"></span>
           <div @click="clickItem(index)">
             <div class="list-date">
-              <span class="fish"><i>{{item.sun}}</i>/{{item.num}}期</span>
-              <span class="date">还款日 {{item.date}}</span>
+              <span class="fish"><i>{{item.periods}}</i>/{{productList.length}}期</span>
+              <span class="date">还款日 {{item.exRepaymentTime}}</span>
             </div>
             <div class="list-state">
-              <span class="state-money">{{item.money}}</span>
-              <span class="state-repayment">已还款</span>
+              <span class="state-money">{{item.monthlyAmount}}</span>
+              <span class="state-repayment stay-color" v-if="item.repaymentStatus === 10">{{item.repaymentStatusVal}}</span>
+              <span class="state-repayment end-color" v-if="item.repaymentStatus === 20">{{item.repaymentStatusVal}}</span>
+              <span class="state-repayment over-color" v-if="item.repaymentStatus === 30">{{item.repaymentStatusVal}}</span>
             </div>
           </div>
         </div>
         <div class="card-info-money" v-show="index==limit">
           <div class="dir">
             <span class="dir-tit">月供</span>
-            <span class="dir-num">￥833.33</span>
+            <span class="dir-num">￥{{item.monthlyAmount}}</span>
           </div>
           <div class="dir">
             <span class="dir-tit">逾期费</span>
-            <span class="dir-num">￥833.33</span>
+            <span class="dir-num">￥{{item.lateFree }}</span>
           </div>
           <div class="dir">
             <span class="dir-tit">其他费用</span>
-            <span class="dir-num">￥833.33</span>
+            <span class="dir-num">￥{{item.otherExpenses }}</span>
           </div>
           <div class="dir">
             <span class="dir-tit">实际还款日</span>
-            <span class="dir-num">8018-10-20</span>
+            <span class="dir-num">{{item.acRepaymentTime}}</span>
           </div>
         </div>
       </div>
@@ -55,47 +57,68 @@ export default {
   name: 'Main',
   data () {
     return {
-      productList: [
-        {
-          money: '800',
-          date: '2018-10-20',
-          num: '6',
-          sun: '1',
-          Number: '1'
-        },
-        {
-          money: '245',
-          date: '2018-10-20',
-          num: '6',
-          sun: '2',
-          Number: '1'
-        },
-        {
-          money: '365',
-          date: '2018-10-20',
-          num: '6',
-          sun: '3',
-          Number: '1'
-        },
-        {
-          money: '122',
-          date: '2018-10-20',
-          num: '6',
-          sun: '4',
-          Number: '1'
-        },
-        {
-          money: '122',
-          date: '2018-10-20',
-          num: '6',
-          sun: '4',
-          Number: '1'
-        }
-      ],
+      DetailsTitle: '',
+      productList: [],
       limit: -1
     }
   },
   methods: {
+    clickSelect (item, index, productList) {
+      if (item.select === false || item.select === true) {
+        item.select = !item.select
+        item.StatusOn = !item.StatusOn
+      }
+      if (index === 0) {
+        // if (productList[index].StatusOn === false) {
+        //   item.select = !item.select
+        //   item.StatusOn = !item.StatusOn
+        // }
+        return
+      }
+      if (index !== 0) {
+        if (productList[index - 1].StatusOn === false) {
+          this.$toast.center('请结清上一期')
+          item.select = !item.select
+          item.StatusOn = !item.StatusOn
+        }
+      }
+    },
+    DetailsInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/repaymentPlanDetails' + '/1', {
+      })
+        .then(this.getMainInfoSucc)
+        .catch(this.getMaininfoerror)
+    },
+    getMainInfoSucc (res) {
+      res = res.data.data
+      this.DetailsTitle = res.Outstanding
+      this.productList = res.repayments
+      console.log(this.productList)
+      let _this = this
+      this.productList.map(function (item) {
+        // /*未还款*/
+        if (item.repaymentStatus === 10) {
+          _this.$set(item, 'select', false)
+          _this.$set(item, 'StatusOn', false)
+        }
+        // /*已还款*/
+        if (item.repaymentStatus === 20) {
+          _this.$set(item, 'disable', true)
+          _this.$set(item, 'StatusOn', true)
+        }
+        // /*逾期*/
+        if (item.repaymentStatus === 30) {
+          _this.$set(item, 'select', false)
+          _this.$set(item, 'StatusOn', false)
+        }
+      })
+    },
+    getMaininfoerror (res) {
+      this.$toast('网络错误')
+    },
+    // /*展开收缩*/
     clickItem (index) {
       if (index === this.limit) {
         this.limit = -1
@@ -107,14 +130,14 @@ export default {
   computed: {
     // 获取总价和产品总数
     getTotal: function () {
-      let _proList = this.productList.filter(function (val) {
+      var _proList = this.productList.filter(function (val) {
           return val.select
         }),
         totalPrice = 0,
         isMentnum = 0
       for (var i = 0; i < _proList.length; i++) {
         // 总价累加
-        totalPrice += _proList[i].Number * _proList[i].money
+        totalPrice += 1 * _proList[i].monthlyAmount
       }
       if (_proList.length === 0) {
         isMentnum = 0
@@ -133,11 +156,8 @@ export default {
       }
     }
   },
-  mounted: function () {
-    var _this = this
-    this.productList.map(function (item) {
-      _this.$set(item, 'select', false)
-    })
+  mounted () {
+    this.DetailsInfo()
   }
 }
 </script>
@@ -145,7 +165,7 @@ export default {
 <style scoped>
   .header{
     height: 2.5rem;
-    background:linear-gradient(339deg,rgba(255,190,123,1) 0%,rgba(255,113,90,1) 100%);
+    background:linear-gradient(339deg,rgba(255,190,123,1) 0%,rgba(255,200,123,1) 0%,rgba(255,113,90,1) 100%);
   }
   .money{
     font-size: .64rem;
@@ -168,14 +188,15 @@ export default {
   }
   .main{
     height: 100%;
+    margin-bottom: 1.5rem;
     overflow: hidden;
   }
   .list{
     border-bottom: 0.01rem solid #E7E7E7;
-    padding: .35rem .57rem .4rem .25rem;
+    padding: .35rem .45rem .4rem .25rem;
     height: 1.1rem;
-    background: #FFFFFF url("../../../assets/image/borrow-jiantou.png") no-repeat right .25rem center;
-    background-size: .38rem;
+    background: #FFFFFF url("../../../assets/image/sjy.png") no-repeat right .25rem center;
+    background-size: .15rem;
     overflow: hidden;
   }
   .list:last-child{
@@ -192,6 +213,10 @@ export default {
   }
   .list .radio.check-true{
     background: url("../../../assets/image/radio-t.png") no-repeat center center;
+    background-size: .42rem;
+  }
+  .list .radio.check-dib{
+    background: url("../../../assets/image/disable.png") no-repeat center center;
     background-size: .42rem;
   }
   .list-date{
@@ -238,6 +263,15 @@ export default {
     font-weight:400;
     line-height: .5rem;
     float: right;
+  }
+  .stay-color{
+    color: #465BFF!important;
+  }
+  .end-color{
+    color: #999999!important;
+  }
+  .over-color{
+    color: #FE5156!important;
   }
   /*还款展开列表*/
   .card-info-money{
@@ -309,7 +343,7 @@ export default {
     font-size: .3rem;
   }
   .isrepayment-bg{
-    background:linear-gradient(310deg,rgba(255,140,104,1) 0%,rgba(253,186,117,1) 100%);
+    background:linear-gradient(339deg,rgba(255,140,104,1) 0%,rgba(253,186,117,1) 100%);
     color: #FFFFFF;
   }
 </style>
