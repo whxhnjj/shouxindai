@@ -24,6 +24,7 @@ export default {
   methods: {
     // 对焦到下一个input框去
     nextFocus (el, index) {
+      console.log(el)
       let dom = document.getElementsByClassName('border-input')
       let currInput = dom[index]
       let nextInput = dom[index + 1]
@@ -32,6 +33,7 @@ export default {
         if (index < (this.inputList.length - 1)) {
           nextInput.focus()
         } else {
+          // 6位验证码输入完成
           currInput.blur()
         }
       } else {

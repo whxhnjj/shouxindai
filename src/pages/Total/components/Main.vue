@@ -7,10 +7,10 @@
     </div>
     <div class="main">
       <div class="list"  v-for="item of main" :key="item.index">
-        <div class="money">{{item.awaitAmount}}</div>
+        <div class="money">{{item.waitAmountPayableSum}}</div>
         <span class="left">待还总额</span>
-        <span class="right">剩余<i>{{item.surplusCount}}</i>期</span>
-        <div class="list-tip">{{item.borrowDate}} 借款{{item.borrowingAmount}}</div>
+        <span class="right">剩余<i>{{item.remainingPeriods}}</i>期</span>
+        <div class="list-tip">{{item.insertTime}} 借款{{item.principal}}</div>
       </div>
     </div>
   </div>
@@ -30,17 +30,17 @@ export default {
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/repaymentPlan', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/repaymentPlan' + '/1', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
-      res = res.data
       console.log(res)
-      this.Totalmon = res.data.amount
-      this.main = res.data.arrearList
-      this.count = res.data.count
+      res = res.data
+      this.Totalmon = res.data.waitTotalNumber
+      this.main = res.data.wantToRepaymentList
+      this.count = res.data.waitAmountPayableSumTotal
     },
     getMaininfoerror (res) {
       this.$toast('网络错误')

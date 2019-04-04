@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="header">
-      <span class="money">{{DetailsTitle}}</span>
+      <span class="money">{{amountPayableSum}}</span>
       <span class="text">待还总额(元)</span>
     </div>
     <div class="main">
@@ -11,14 +11,14 @@
           <span class="radio" @click='clickSelect(item,index,productList)' :class="{'check-true':item.select,'check-dib':item.disable}"></span>
           <div @click="clickItem(index)">
             <div class="list-date">
-              <span class="fish"><i>{{item.periods}}</i>/{{productList.length}}期</span>
+              <span class="fish"><i>{{item.periods}}</i>/{{item.totalperiods}}期</span>
               <span class="date">还款日 {{item.exRepaymentTime}}</span>
             </div>
             <div class="list-state">
-              <span class="state-money">{{item.monthlyAmount}}</span>
-              <span class="state-repayment stay-color" v-if="item.repaymentStatus === 10">{{item.repaymentStatusVal}}</span>
-              <span class="state-repayment end-color" v-if="item.repaymentStatus === 20">{{item.repaymentStatusVal}}</span>
-              <span class="state-repayment over-color" v-if="item.repaymentStatus === 30">{{item.repaymentStatusVal}}</span>
+              <span class="state-money">{{item.amountPayable}}</span>
+              <span class="state-repayment stay-color" v-if="item.repaymentStatus === 10">未还款</span>
+              <span class="state-repayment end-color" v-if="item.repaymentStatus === 20">已还款</span>
+              <span class="state-repayment over-color" v-if="item.repaymentStatus === 30">逾期</span>
             </div>
           </div>
         </div>
@@ -29,11 +29,11 @@
           </div>
           <div class="dir">
             <span class="dir-tit">逾期费</span>
-            <span class="dir-num">￥{{item.lateFree }}</span>
+            <span class="dir-num">￥{{item.lateFree}}</span>
           </div>
           <div class="dir">
             <span class="dir-tit">其他费用</span>
-            <span class="dir-num">￥{{item.otherExpenses }}</span>
+            <span class="dir-num">￥{{item.otherExpenses}}</span>
           </div>
           <div class="dir">
             <span class="dir-tit">实际还款日</span>
@@ -46,8 +46,8 @@
     <div class="footer">
       <div class="accounts-mon">共<i>{{getTotal.totalPrice}}</i>元</div>
       <div class="repayment" v-show="getTotal.isMentnum ===0">还款</div>
-      <div class="repayment isrepayment-bg" v-show="getTotal.isMentnum === 1">还款</div>
-      <div class="repayment isrepayment-bg" v-show="getTotal.isMentnum === 2">结清</div>
+      <div class="repayment isrepayment-bg" v-show="getTotal.isMentnum === 1" @click="repayment">还款</div>
+      <div class="repayment isrepayment-bg" v-show="getTotal.isMentnum === 2" @click="repayment">结清</div>
     </div>
   </div>
 </template>
@@ -57,13 +57,49 @@ export default {
   name: 'Main',
   data () {
     return {
-      DetailsTitle: '',
+      amountPayableSum: '',
       productList: [],
-      limit: -1
+      limit: -1,
+      periodsSz: [], // 期数
+      repaymentAmountSz: [] // 每月还款金额
     }
   },
   methods: {
+    // 还款
+    repayment () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/initiativeRepayment', {
+        orderNo: '1',
+        periodsSz: this.periodsSz,
+        repaymentAmountSz: this.repaymentAmountSz
+      })
+        .then(this.getRepaymentMainInfoSucc)
+        .catch(this.getRepaymentMainInfoerror)
+    },
+    getRepaymentMainInfoSucc (res) {
+      console.log(res)
+    },
+    getRepaymentMainInfoerror (res) {
+      this.$toast.center('网络错误')
+    },
+    // 选择添加select
     clickSelect (item, index, productList) {
+      if (item.disable === true) {
+      }
+      if (item.select === false) {
+        // /*期数添加数组*/
+        this.periodsSz.push(index + 1)
+        // 期数金额添加数组
+        this.repaymentAmountSz.push(item.amountPayable)
+      }
+      if (item.select === true) {
+        var str = this.periodsSz.indexOf(index + 1)
+        if (str > -1) {
+          this.periodsSz.splice(str, 1)
+        }
+      }
+      console.log(this.repaymentAmountSz)
       if (item.select === false || item.select === true) {
         item.select = !item.select
         item.StatusOn = !item.StatusOn
@@ -86,16 +122,16 @@ export default {
     DetailsInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/repaymentPlanDetails' + '/1', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/repaymentDetail' + '/1', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
       res = res.data.data
-      this.DetailsTitle = res.Outstanding
-      this.productList = res.repayments
-      console.log(this.productList)
+      console.log(res)
+      this.amountPayableSum = res.amountPayableSum
+      this.productList = res.webRepaymentDetailsResponseDTOs
       let _this = this
       this.productList.map(function (item) {
         // /*未还款*/
