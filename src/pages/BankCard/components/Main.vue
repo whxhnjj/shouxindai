@@ -21,7 +21,7 @@ export default {
     readInfo () {
       this.axios.defaults.headers.get['Content-Type'] = 'application/json'
       this.axios.defaults.headers.get['token'] = this.GLOBAL.Token
-      this.axios.get(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/getBankList', {
+      this.axios.get(this.GLOBAL.axIosUrl + 'api/getBankList', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)

@@ -20,12 +20,10 @@
         <span class="name">还款方式</span>
         <span class="info">等额本息</span>
       </div>
-      <div class="plan" >
-        <router-link to="/repayment">
-          <div class="plan-name">还款计划</div>
-          <div class="money">{{Monthlysupply}}元</div>
-          <div class="time">{{repaymenttime}}</div>
-        </router-link>
+      <div class="plan" @click="routerTo">
+        <div class="plan-name">还款计划</div>
+        <div class="money">{{Monthlysupply}}元</div>
+        <div class="time">{{repaymenttime}}</div>
       </div>
       <div class="tip">试算结果仅供参考，具体以您签署的借款文件</div>
     </div>
@@ -105,9 +103,13 @@ export default {
   },
   methods: {
     clickSubmitInfo () {
+      if (this.isRadioimg === true) {
+        this.$toast.center('请阅读并勾选爱尚平台服务及合同')
+        return
+      }
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/borrowsing', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowsing', {
         amount: this.amount,
         purposes: this.purposes,
         installmentNumber: this.installmentNumber,
@@ -119,7 +121,9 @@ export default {
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
+      console.log(res)
       res = res.data
+      this.$toast.center('')
     },
     getMaininfoerror (res) {
       this.$toast('网络错误')
@@ -160,14 +164,15 @@ export default {
     },
     // /*借款用途条件*/
     loanUsageInfo () {
-      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
-      this.axios.get(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/borrowsingPurposes', {
-        token: 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDVVNUMjAxODExMjcxOTQyMzkxNjAxOCIsImF1ZCI6IlNTWCIsImlzcyI6Imx4bCIsImlhdCI6MTU1Mzg0MjkyNCwiZXhwIjoxNTU0NDQ3NzI0LCJhdXRob3JpdGllcyI6W10sImFwcGlkcyI6WyJDQVNIX0xPQU4iLCIzIiwiQ01TX0NFTlRFUiJdfQ.vcqBjAPtw7j1PQl4Hd4YVFqjvCjqlLPPRriE_Fib0qWxxeta2Ive11kingFctuQy3YayQKey8Mqir_AQfMDtDQ'
+      this.axios.defaults.headers.get['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.get['token'] = this.GLOBAL.Token
+      this.axios.get(this.GLOBAL.axIosUrl + 'api/borrowsingPurposes', {
       })
         .then(this.loanUsageInfoSucc)
         .catch(this.loanUsageInfoerror)
     },
     loanUsageInfoSucc (res) {
+      console.log(res)
       res = res.data
       this.arrData = res.data
     },
@@ -176,9 +181,10 @@ export default {
     },
     // 分期期数
     installmentsInfo () {
-      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
-      this.axios.get(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/installmentNumber', {
-        token: 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDVVNUMjAxODExMjcxOTQyMzkxNjAxOCIsImF1ZCI6IlNTWCIsImlzcyI6Imx4bCIsImlhdCI6MTU1Mzg0MjkyNCwiZXhwIjoxNTU0NDQ3NzI0LCJhdXRob3JpdGllcyI6W10sImFwcGlkcyI6WyJDQVNIX0xPQU4iLCIzIiwiQ01TX0NFTlRFUiJdfQ.vcqBjAPtw7j1PQl4Hd4YVFqjvCjqlLPPRriE_Fib0qWxxeta2Ive11kingFctuQy3YayQKey8Mqir_AQfMDtDQ'
+      console.log(this.GLOBAL.Token)
+      this.axios.defaults.headers.get['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.get['token'] = this.GLOBAL.Token
+      this.axios.get(this.GLOBAL.axIosUrl + 'api/installmentNumber', {
       })
         .then(this.installmentsInfoSucc)
         .catch(this.installmentsInfoerror)
@@ -189,6 +195,10 @@ export default {
     },
     installmentsInfoerror (res) {
       this.$toast('网络错误')
+    },
+    // 还款计划跳转
+    routerTo () {
+      this.$router.push({path: '/repayment', query: {Num: this.amount, fish: parseInt(this.installmentNumber)}})
     }
   },
   mounted () {

@@ -4,10 +4,12 @@
     <!--卡片开始-->
     <div class="list" v-for="item of main" :key="item.index">
       <div class="info">
-        <span class="mon">{{item.amount}}</span>
-        <span class="date">{{item.borrowDate}}</span>
+        <span class="mon">{{item.loadMoney}}</span>
+        <span class="date">{{item.insertTime}}</span>
       </div>
-      <div class="state">{{item.status}}</div>
+      <div class="state" v-if="item.repaymentStatus === 10">未结清</div>
+      <div class="state" v-if="item.repaymentStatus === 20">已结清</div>
+      <div class="state" v-if="item.repaymentStatus === 30">未结清</div>
     </div>
   </div>
 </div>
@@ -25,7 +27,7 @@ export default {
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/borrowRecord', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowRecord' + '/1', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)

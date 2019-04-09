@@ -31,14 +31,14 @@ export default {
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/bankNoList', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/bankNoList', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
-      res = res.data.data
       console.log(res)
+      res = res.data.data
       this.main = res
     },
     getMaininfoerror (res) {

@@ -189,7 +189,7 @@ export default {
       }
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/assess/application', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/assess/application', {
         userName: this.userName,
         phone: this.phone,
         idCard: this.idCard,

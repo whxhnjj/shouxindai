@@ -1,7 +1,7 @@
 <template>
 <div>
   <div class="header">
-    <div class="state">{{data.orderStatus}}</div>
+    <div class="state">{{data.repaymentStatus}}</div>
     <div class="header-info">订单状态</div>
   </div>
   <div class="box">
@@ -11,35 +11,35 @@
     </div>
     <div class="list">
       <span class="name">借款金额</span>
-      <span class="list-val">{{data.principal}}</span>
+      <span class="list-val">{{data.loadMoney}}</span>
     </div>
     <div class="list">
       <span class="name">借款申请时间</span>
-      <span class="list-val">{{data.insertDate1}}</span>
+      <span class="list-val">{{data.insertTime}}</span>
     </div>
     <div class="list">
       <span class="name">评估创建时间</span>
-      <span class="list-val">{{data.insertDate2}}</span>
+      <span class="list-val">{{data.assessmentTime}}</span>
     </div>
     <div class="list">
       <span class="name">还款方式</span>
-      <span class="list-val">等额本息</span>
+      <span class="list-val">{{data.planBreathWay}}</span>
     </div>
     <div class="list">
       <span class="name">还款期数</span>
-      <span class="list-val">{{data.installmentNumber}}期</span>
+      <span class="list-val">{{data.periods}}期</span>
     </div>
     <div class="list">
       <span class="name">提现银行卡</span>
-      <span class="list-val">{{data.reimbursementMeans}} </span>
+      <span class="list-val">{{data.borrowBankNo}} </span>
     </div>
     <div class="list">
       <span class="name">借款用途</span>
-      <span class="list-val">{{data.purposes}}</span>
+      <span class="list-val">{{data.loadUse}}</span>
     </div>
     <div class="list">
       <span class="name">借款合同</span>
-      <span class="list-val">爱尚协议支付及合同</span>
+      <router-link class="list-url" to="">爱尚协议支付及合同</router-link>
     </div>
   </div>
   <div class="title">借款明细</div>
@@ -48,16 +48,16 @@
     <!--卡片开始-->
     <div class="main-list" v-for="item of main" :key="item.index">
       <div class="main-info">
-        <span class="periods">{{item.borrowingAmount}}</span>
-        <span class="main-mon">{{item.amount}}元</span>
+        <span class="periods"><i>{{item.period}}</i>/{{item.periods}}</span>
+        <span class="main-mon">{{item.amountPayable}}元</span>
       </div>
-      <div class="main-date">{{item.settleDate}}</div>
+      <div class="main-date">{{item.acRepaymentTime}}</div>
     </div>
   </div>
   <!--默认扣款账户-->
   <div class="footer">
     <span class="footer-title">默认扣款账户</span>
-    <span class="bank">浦发银行（5656)</span>
+    <span class="bank">{{data.returnBankName}}（{{data.returnBankNo}})</span>
   </div>
 </div>
 </template>
@@ -75,15 +75,16 @@ export default {
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/borrowDetail', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowDetail' + '/1', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
       res = res.data
+      console.log(res)
       this.data = res.data
-      this.main = res.data.borrowDetail
+      this.main = res.data.borrowRecordList
     },
     getMaininfoerror (res) {
       this.$toast('网络错误')
@@ -141,6 +142,12 @@ export default {
     font-size: .26rem;
     font-weight:400;
     float: right;
+  }
+  .list .list-url{
+    font-size: .26rem;
+    font-weight:400;
+    float: right;
+    color: #465BFF;
   }
   /*借款明细*/
   .title{

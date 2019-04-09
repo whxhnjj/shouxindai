@@ -30,7 +30,7 @@ export default {
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/repaymentPlan' + '/1', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentPlan' + '/1', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)

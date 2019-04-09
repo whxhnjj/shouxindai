@@ -56,7 +56,7 @@ export default {
     clickSubmitInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/jxck/app/credit/api/addBankCard', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/addBankCard', {
         name: this.name,
         idCard: this.idCard,
         bank: this.card,

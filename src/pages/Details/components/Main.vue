@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="header">
-      <span class="money">{{amountPayableSum}}</span>
+      <span class="money">{{amountPayableCount}}</span>
       <span class="text">待还总额(元)</span>
     </div>
     <div class="main">
@@ -54,10 +54,11 @@
 
 <script>
 export default {
+  inject: ['reload'],
   name: 'Main',
   data () {
     return {
-      amountPayableSum: '',
+      amountPayableCount: '',
       productList: [],
       limit: -1,
       periodsSz: [], // 期数
@@ -69,7 +70,7 @@ export default {
     repayment () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/initiativeRepayment', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/initiativeRepayment', {
         orderNo: '1',
         periodsSz: this.periodsSz,
         repaymentAmountSz: this.repaymentAmountSz
@@ -78,28 +79,53 @@ export default {
         .catch(this.getRepaymentMainInfoerror)
     },
     getRepaymentMainInfoSucc (res) {
-      console.log(res)
+      this.$toast.center(res.data.msg)
+      this.reload()
     },
     getRepaymentMainInfoerror (res) {
       this.$toast.center('网络错误')
     },
     // 选择添加select
     clickSelect (item, index, productList) {
-      if (item.disable === true) {
-      }
-      if (item.select === false) {
-        // /*期数添加数组*/
-        this.periodsSz.push(index + 1)
-        // 期数金额添加数组
-        this.repaymentAmountSz.push(item.amountPayable)
-      }
-      if (item.select === true) {
-        var str = this.periodsSz.indexOf(index + 1)
-        if (str > -1) {
-          this.periodsSz.splice(str, 1)
+      if (index === 0) {
+        if (item.disable === true) {
+        }
+        if (item.select === false) {
+          // /*期数添加数组*/
+          this.periodsSz.push(index + 1)
+          // 期数金额添加数组
+          this.repaymentAmountSz.push(item.amountPayable)
+        }
+        if (item.select === true) {
+          var str = this.periodsSz.indexOf(index + 1)
+          var strAmountSz = this.repaymentAmountSz.indexOf(index + 1)
+          if (str > -1) {
+            this.periodsSz.splice(str, 1)
+            this.repaymentAmountSz.splice(strAmountSz, 1)
+          }
         }
       }
-      console.log(this.repaymentAmountSz)
+      if (index !== 0) {
+        if (productList[index - 1].StatusOn === false) {
+        } else {
+          if (item.disable === true) {
+          }
+          if (item.select === false) {
+            // /*期数添加数组*/
+            this.periodsSz.push(index + 1)
+            // 期数金额添加数组
+            this.repaymentAmountSz.push(item.amountPayable)
+          }
+          if (item.select === true) {
+            var str = this.periodsSz.indexOf(index + 1)
+            var strAmountSz = this.repaymentAmountSz.indexOf(index + 1)
+            if (str > -1) {
+              this.periodsSz.splice(str, 1)
+              this.repaymentAmountSz.splice(strAmountSz, 1)
+            }
+          }
+        }
+      }
       if (item.select === false || item.select === true) {
         item.select = !item.select
         item.StatusOn = !item.StatusOn
@@ -122,7 +148,7 @@ export default {
     DetailsInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/credit/repayment/api/repaymentDetail' + '/1', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentDetail' + '/1', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
@@ -130,7 +156,7 @@ export default {
     getMainInfoSucc (res) {
       res = res.data.data
       console.log(res)
-      this.amountPayableSum = res.amountPayableSum
+      this.amountPayableCount = res.amountPayableCount
       this.productList = res.webRepaymentDetailsResponseDTOs
       let _this = this
       this.productList.map(function (item) {
@@ -173,7 +199,7 @@ export default {
         isMentnum = 0
       for (var i = 0; i < _proList.length; i++) {
         // 总价累加
-        totalPrice += 1 * _proList[i].monthlyAmount
+        totalPrice += 1 * _proList[i].amountPayable
       }
       if (_proList.length === 0) {
         isMentnum = 0
@@ -228,15 +254,15 @@ export default {
     overflow: hidden;
   }
   .list{
-    border-bottom: 0.01rem solid #E7E7E7;
     padding: .35rem .45rem .4rem .25rem;
     height: 1.1rem;
     background: #FFFFFF url("../../../assets/image/sjy.png") no-repeat right .25rem center;
     background-size: .15rem;
+    border-bottom: 0.01rem solid #E7E7E7;
     overflow: hidden;
   }
   .list:last-child{
-    border-bottom: 0 solid transparent;
+    border-bottom: 0 solid transparent!important;
   }
   .list .radio{
     width: .42rem;
