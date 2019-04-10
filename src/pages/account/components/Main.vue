@@ -1,9 +1,9 @@
 <template>
   <div>
-<!--    <div class="main">
+    <div class="main" v-if="main===''">
       <img src="../../../assets/image/account-bg.png">
       <span>您还未添加银行卡</span>
-    </div>-->
+    </div>
     <div class="box">
       <div class="list" v-for="item of main" :key="item.index">
         <img :src="item.logo" />
@@ -13,9 +13,7 @@
         </div>
       </div>
     </div>
-    <div class="add">
-      <span>添加银行卡</span>
-    </div>
+    <router-link class="add" to="/Addcard">添加银行卡</router-link>
   </div>
 </template>
 
@@ -75,16 +73,16 @@ export default {
     margin-bottom: 7.8rem;
   }
   .add{
+    display: block;
     margin-bottom: .5rem;
     height: 1rem;
-    padding: 0 .4rem;
-    background:#FFFFFF url("../../../assets/image/borrow-jiantou.png") no-repeat right .4rem center;
-    background-size: .44rem;
-  }
-  .add span{
     line-height: 1rem;
+    padding: 0 .4rem;
+    background:#FFF url("../../../assets/image/borrow-jiantou.png") no-repeat right .4rem center;
+    background-size: .44rem;
     font-size: .3rem;
     color: #333333;
+    overflow: hidden;
   }
   /*银行卡*/
   .box{

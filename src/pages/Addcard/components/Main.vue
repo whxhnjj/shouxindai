@@ -52,16 +52,36 @@ export default {
       authCode: ''
     }
   },
+  watch: {
+    '$route': 'routeTo'
+  },
+  created () {
+    this.routeTo()
+  },
   methods: {
+    // 监听选择银行卡
+    routeTo () {
+      if (this.$route.query.card === undefined) {
+        this.card = '请选择卡行'
+        this.iscard = true
+      } else {
+        this.card = this.$route.query.card
+        this.iscard = false
+      }
+    },
     clickSubmitInfo () {
+      if (this.name === '' || this.phone === '' || this.idCard === '' || this.authCode === '') {
+        this.$toast.center('请填写完整的身份信息！')
+        return
+      }
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
       this.axios.post(this.GLOBAL.axIosUrl + 'api/addBankCard', {
-        name: this.name,
-        idCard: this.idCard,
-        bank: this.card,
-        bankCard: this.bankCard,
+        userName: this.name,
         phone: this.phone,
+        idCard: this.idCard,
+        bankNo: this.$route.query.id,
+        bankName: this.$route.query.card,
         authCode: this.authCode
       })
         .then(this.getMainInfoSucc)
@@ -86,15 +106,6 @@ export default {
           clearInterval(timefun)
         }
       }, 1000)
-    }
-  },
-  mounted: function () {
-    if (this.$route.params.card === undefined) {
-      this.card = '请选择卡行'
-      this.iscard = true
-    } else {
-      this.card = this.$route.params.card
-      this.iscard = false
     }
   }
 }

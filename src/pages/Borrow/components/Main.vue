@@ -18,7 +18,7 @@
       </div>
       <div class="use">
         <span class="name">还款方式</span>
-        <span class="info">等额本息</span>
+        <span class="info">{{interestType}}</span>
       </div>
       <div class="plan" @click="routerTo">
         <div class="plan-name">还款计划</div>
@@ -30,9 +30,9 @@
     <!--收款账户-->
     <div class="main">
       <div class="card">
-        <img src="../../../assets/image/borrow-card.png">
+        <img :src="isbankimg">
         <div class="card-info">
-          <div class="card-name">收款账户<span>（招商银行9731）</span></div>
+          <div class="card-name">收款账户<span>（{{isbankName}}{{isbanknum}}）</span></div>
           <div class="card-time">预计两小时到账</div>
         </div>
       </div>
@@ -92,7 +92,13 @@ export default {
       repaymentPlan: '5',
       bankCard: '6',
       Monthlysupply: '',
-      repaymenttime: ''
+      repaymenttime: '',
+      banckMain: '',
+      interestType: '等额本息',
+      isbankName: '', // 默认银行卡
+      isbankid: '',
+      isbanknum: '',
+      isbankimg: ''
     }
   },
   watch: {
@@ -102,6 +108,26 @@ export default {
     }
   },
   methods: {
+    // 读取默认银行卡号
+    readInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/bankNoList', {
+      })
+        .then(this.readInfoSucc)
+        .catch(this.readInfoerror)
+    },
+    readInfoSucc (res) {
+      res = res.data.data
+      this.isbankName = res[0].bankName
+      this.isbankid = res[0].id
+      this.isbanknum = res[0].bankCardNumberSuffix
+      this.isbankimg = res[0].logo
+    },
+    readInfoerror (res) {
+      this.$toast('网络错误')
+    },
+    // 提交借款数据
     clickSubmitInfo () {
       if (this.isRadioimg === true) {
         this.$toast.center('请阅读并勾选爱尚平台服务及合同')
@@ -110,12 +136,14 @@ export default {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
       this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowsing', {
-        amount: this.amount,
-        purposes: this.purposes,
-        installmentNumber: this.installmentNumber,
-        reimbursementMeans: this.reimbursementMeans,
-        repaymentPlan: this.repaymentPlan,
-        bankCard: this.bankCard
+        bankCard: this.bankCard,
+        bankId: this.isbankid,
+        bankName: this.isbankName,
+        interestType: this.interestType,
+        loadMoney: this.amount,
+        loadUse: this.purposes,
+        periods: this.installmentNumber,
+        repaymentPlan: this.repaymentPlan
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
@@ -172,7 +200,6 @@ export default {
         .catch(this.loanUsageInfoerror)
     },
     loanUsageInfoSucc (res) {
-      console.log(res)
       res = res.data
       this.arrData = res.data
     },
@@ -181,7 +208,6 @@ export default {
     },
     // 分期期数
     installmentsInfo () {
-      console.log(this.GLOBAL.Token)
       this.axios.defaults.headers.get['Content-Type'] = 'application/json'
       this.axios.defaults.headers.get['token'] = this.GLOBAL.Token
       this.axios.get(this.GLOBAL.axIosUrl + 'api/installmentNumber', {
@@ -216,6 +242,7 @@ export default {
     this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
     this.loanUsageInfo()
     this.installmentsInfo()
+    this.readInfo()
   }
 }
 </script>

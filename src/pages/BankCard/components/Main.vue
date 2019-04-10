@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="main">
-      <div class="list" v-for="(data,index) in arrData" :key="index" @click="getDataUrl(data.bankName)">
+      <div class="list" v-for="(data,index) in arrData" :key="index" @click="getDataUrl(data)">
         <img :src="data.bankLogo" />
         <span>{{data.bankName}}</span>
       </div>
@@ -27,20 +27,14 @@ export default {
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
-      console.log(res)
       res = res.data.data
       this.arrData = res
     },
     getMaininfoerror (res) {
       this.$toast('网络错误')
     },
-    getDataUrl (card) {
-      this.$router.push({
-        name: 'Addcard',
-        params: {
-          card: card
-        }
-      })
+    getDataUrl (data) {
+      this.$router.push({path: '/Addcard', query: {card: data.bankName, id: data.id}})
     }
   },
   mounted () {
