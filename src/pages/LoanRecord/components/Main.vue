@@ -2,10 +2,10 @@
 <div>
   <div class="main">
     <!--卡片开始-->
-    <div class="list" v-for="item of main" :key="item.index">
+    <div class="list" v-for="item of main" :key="item.index" @click="routerTo(item.orderNo)">
       <div class="info">
         <span class="mon">{{item.loadMoney}}</span>
-        <span class="date">{{item.insertTime}}</span>
+        <span class="date">{{item.insertTime | time}}</span>
       </div>
       <div class="state" v-if="item.repaymentStatus === 10">未结清</div>
       <div class="state" v-if="item.repaymentStatus === 20">已结清</div>
@@ -23,11 +23,21 @@ export default {
       main: []
     }
   },
+  // 时间戳转日期
+  filters: {
+    time: function time (value) {
+      var d = new Date(parseInt(value))
+      return (d.getFullYear()) + '年' + (d.getMonth() + 1 > 9 ? d.getMonth() + 1 : '0' + (d.getMonth() + 1)) + '月' + (d.getDate() > 9 ? d.getDate() : '0' + d.getDate()) + '日'
+    }
+  },
   methods: {
+    routerTo (orderNo) {
+      this.$router.push({path: '/LoanDetails', query: {orderNo: orderNo}})
+    },
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowRecord' + '/1', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowRecord', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)

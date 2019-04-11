@@ -4,7 +4,7 @@
       <div class="title">借多少</div>
       <div class="num">
         <span>¥</span>
-        <input type="number" value=""  v-model="amount" placeholder="请输入你的借款金额"/>
+        <input type="number" value=""  v-model="amount" oninput="if(value.length > 6)value = value.slice(0, 6)" placeholder="请输入你的借款金额"/>
       </div>
     </div>
     <div class="main">
@@ -14,7 +14,7 @@
       </div>
       <div class="use" @click="stagesPop">
         <span class="name">分期期数</span>
-        <span class="info">{{installmentNumber}}</span>
+        <span class="info">{{installmentNumber}}个月</span>
       </div>
       <div class="use">
         <span class="name">还款方式</span>
@@ -28,7 +28,7 @@
       <div class="tip">试算结果仅供参考，具体以您签署的借款文件</div>
     </div>
     <!--收款账户-->
-    <div class="main">
+    <div class="main" @click="routerToBack">
       <div class="card">
         <img :src="isbankimg">
         <div class="card-info">
@@ -65,7 +65,7 @@
           <div class="box-pop">
             <div class="title">选择任意期限都可以提前还</div>
             <ul>
-              <li v-for="(data,index) in stagesData" :key="index"  @click="getDatastages(data)">{{data}}</li>
+              <li v-for="(data,index) in stagesData" :key="index"  @click="getDatastages(data)">{{data}}个月</li>
             </ul>
           </div>
           <div class="cancel" @click="strcancel">取消</div>
@@ -87,7 +87,7 @@ export default {
       strpopup: false,
       amount: '1000',
       purposes: '个人日常消费',
-      installmentNumber: '12个月',
+      installmentNumber: '12',
       reimbursementMeans: '4',
       repaymentPlan: '5',
       bankCard: '6',
@@ -102,12 +102,61 @@ export default {
     }
   },
   watch: {
+    '$route': 'getPathBack',
     // 如果 `amount` 发生改变，这个函数就会运行
     amount: function () {
-      this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
+      if (this.amount === '') {
+        this.$toast.center('请输入借款金额')
+        return
+      }
+      // this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentPlan', {
+        amount: this.amount,
+        installmentNumber: this.installmentNumber,
+        reimbursementMeans: '等额本息'
+      })
+        .then(this.amountInfosucc)
+        .catch(this.amountInfoerror)
     }
   },
   methods: {
+    getPathBack () {
+      this.isbankName = this.$route.query.bankName
+      this.isbankid = this.$route.query.bankId
+      this.isbanknum = this.$route.query.bankCardNumberSuffix
+      this.isbankimg = this.$route.query.bankLogo
+    },
+    // 读取Input输入框金额
+    amountInfosucc (res) {
+      res = res.data.data
+      this.Monthlysupply = res.amount
+      this.repaymenttime = res.dateList[0]
+    },
+    amountInfoerror (res) {
+      this.$toast.center('网络错误')
+    },
+    // 读取还款金额
+    moneyInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentPlan', {
+        amount: this.amount,
+        installmentNumber: this.installmentNumber,
+        reimbursementMeans: '等额本息'
+      })
+        .then(this.moneyInfosucc)
+        .catch(this.moneyInfoerror)
+    },
+    moneyInfosucc (res) {
+      res = res.data.data
+      this.Monthlysupply = res.amount
+      this.repaymenttime = res.dateList[0]
+    },
+    moneyInfoerror (res) {
+      this.$toast.center('网络错误')
+    },
     // 读取默认银行卡号
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
@@ -127,6 +176,10 @@ export default {
     readInfoerror (res) {
       this.$toast('网络错误')
     },
+    // 更换收款银行卡
+    routerToBack () {
+      this.$router.push({path: '/account'})
+    },
     // 提交借款数据
     clickSubmitInfo () {
       if (this.isRadioimg === true) {
@@ -136,7 +189,6 @@ export default {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
       this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowsing', {
-        bankCard: this.bankCard,
         bankId: this.isbankid,
         bankName: this.isbankName,
         interestType: this.interestType,
@@ -151,7 +203,10 @@ export default {
     getMainInfoSucc (res) {
       console.log(res)
       res = res.data
-      this.$toast.center('')
+      this.$toast.center(res.msg)
+      if (res.code === 200) {
+        this.$router.push({path: '/Code', query: {orderNo: res.data.orderNo, phone: res.data.phone}})
+      }
     },
     getMaininfoerror (res) {
       this.$toast('网络错误')
@@ -185,10 +240,9 @@ export default {
       this.strpopup = false
     },
     getDatastages (name) {
-      console.log(name.replace(/[\u4e00-\u9fa5]/g, ''))
       this.installmentNumber = name
       this.strpopup = false
-      this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
+      this.moneyInfo()
     },
     // /*借款用途条件*/
     loanUsageInfo () {
@@ -228,21 +282,11 @@ export default {
     }
   },
   mounted () {
-    var date = new Date()
-    var year = date.getFullYear()
-    var month = date.getMonth() + 1
-    var day = date.getDate()
-    if (month < 10) {
-      month = '0' + (month + 1)
-    }
-    if (day < 10) {
-      day = '0' + day
-    }
-    this.repaymenttime = year + '-' + month + '-' + day
-    this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
+    // this.Monthlysupply = parseFloat(parseFloat(this.amount * 1.35 / this.installmentNumber.replace(/[\u4e00-\u9fa5]/g, '')).toFixed(2))
     this.loanUsageInfo()
     this.installmentsInfo()
     this.readInfo()
+    this.moneyInfo()
   }
 }
 </script>

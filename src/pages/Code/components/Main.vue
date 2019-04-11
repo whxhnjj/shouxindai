@@ -3,7 +3,7 @@
     <div class="title">提现验证码</div>
     <div class="inputs">
       <div v-for="(item,index) in inputList" :key="index">
-        <input type="number" v-model="item.val" class="border-input" @keyup="nextFocus($event,index)" @keydown="changeValue(index)" />
+        <input type="number" v-model="item.val" class="border-input" @keyup="nextFocus($event,index)" @keydown="changeValue(index, item)" />
       </div>
     </div>
     <div class="code-time" v-show="sendAuthCode"  @click="getAuthCode">重新发送</div>
@@ -18,13 +18,63 @@ export default {
     return {
       inputList: [{val: ''}, {val: ''}, {val: ''}, {val: ''}, {val: ''}, {val: ''}],
       sendAuthCode: true,
-      code_num: 0
+      code_num: 0,
+      codenum: '',
+      code: []
     }
   },
   methods: {
+    // 获取短信验证码
+    getCodeInfo () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['spreadType'] = 'CASH_LOAN'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post('ms/sendSms?type=1&mobile=' + this.$route.query.phone, {
+      })
+        .then(this.getCodeInfoSucc)
+        .catch(this.getCodeInfoerror)
+    },
+    getCodeInfoSucc (res) {
+      res = res.data
+      if (res.code === 200) {
+        this.$toast.center(res.msg)
+      } else {
+        this.$toast.center(res.msg)
+      }
+    },
+    getCodeInfoerror (res) {
+      console.log(res)
+      this.$toast.center('网络错误')
+    },
+    // 验证短信接口是否正确
+    getcodePro () {
+      var bustr = ''
+      this.code.forEach(function (value, index, array) {
+        console.log(value.val)
+        bustr += value.val
+      })
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post('api/borrowsing/auth', {
+        mobile: this.$route.query.phone,
+        orderNo: this.$route.query.orderNo,
+        smsCode: bustr
+      })
+        .then(this.getcodeProInfoSucc)
+        .catch(this.getcodeProInfoerror)
+    },
+    getcodeProInfoSucc (res) {
+      console.log(res)
+      res = res.data
+      if (res.code === 200) {
+        this.$toast.center('验证成功')
+      }
+    },
+    getcodeProInfoerror () {
+      this.$toast.center('网络错误')
+    },
     // 对焦到下一个input框去
     nextFocus (el, index) {
-      console.log(el)
       let dom = document.getElementsByClassName('border-input')
       let currInput = dom[index]
       let nextInput = dom[index + 1]
@@ -34,6 +84,7 @@ export default {
           nextInput.focus()
         } else {
           // 6位验证码输入完成
+          this.getcodePro()
           currInput.blur()
         }
       } else {
@@ -42,11 +93,13 @@ export default {
         }
       }
     },
-    changeValue (index) {
+    changeValue (index, val) {
+      this.code.push(val)
       this.inputList[index].val = ''
     },
     // 短信倒计时
     getAuthCode: function () {
+      this.getCodeInfo()
       this.sendAuthCode = false
       this.code_num = 60
       let timefun = setInterval(() => {
@@ -57,6 +110,9 @@ export default {
         }
       }, 1000)
     }
+  },
+  created () {
+    this.getAuthCode()
   }
 }
 </script>

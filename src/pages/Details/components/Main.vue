@@ -12,7 +12,7 @@
           <div @click="clickItem(index)">
             <div class="list-date">
               <span class="fish"><i>{{item.periods}}</i>/{{item.totalperiods}}期</span>
-              <span class="date">还款日 {{item.exRepaymentTime}}</span>
+              <span class="date">还款日 {{item.exRepaymentTime | time}}</span>
             </div>
             <div class="list-state">
               <span class="state-money">{{item.amountPayable}}</span>
@@ -65,13 +65,20 @@ export default {
       repaymentAmountSz: [] // 每月还款金额
     }
   },
+  // 时间戳转日期
+  filters: {
+    time: function time (value) {
+      var d = new Date(parseInt(value))
+      return (d.getFullYear()) + '-' + (d.getMonth() + 1 > 9 ? d.getMonth() + 1 : '0' + (d.getMonth() + 1)) + '-' + (d.getDate() > 9 ? d.getDate() : '0' + d.getDate())
+    }
+  },
   methods: {
     // 还款
     repayment () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
       this.axios.post(this.GLOBAL.axIosUrl + 'api/initiativeRepayment', {
-        orderNo: '1',
+        orderNo: '201904111950226609',
         periodsSz: this.periodsSz,
         repaymentAmountSz: this.repaymentAmountSz
       })
@@ -79,8 +86,12 @@ export default {
         .catch(this.getRepaymentMainInfoerror)
     },
     getRepaymentMainInfoSucc (res) {
-      this.$toast.center(res.data.msg)
-      this.reload()
+      if (res.data.code === 200) {
+        this.$router.go(0)
+        this.$toast.center(res.data.msg)
+      } else {
+        this.$toast.center('还款失败')
+      }
     },
     getRepaymentMainInfoerror (res) {
       this.$toast.center('网络错误')
@@ -148,7 +159,7 @@ export default {
     DetailsInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentDetail' + '/1', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentDetail' + '/201904111950226609', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)

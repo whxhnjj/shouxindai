@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="main">
-      <div class="img"><img src="../../../assets/image/success.png" /></div>
-      <div class="tip">提交成功</div>
+      <div class="img"><img :src="msg" /></div>
+      <div class="tip">{{Tip}}</div>
       <span>恭喜你，完成了信用提交</span>
     </div>
     <div class="button" @click="clickSubmitInfo()">返回({{count}})</div>
@@ -14,10 +14,37 @@ export default {
   name: 'Main',
   data () {
     return {
-      count: ''
+      count: '',
+      msg: require('../../../assets/image/success.png'),
+      Tip: '提交成功'
     }
   },
   methods: {
+    getFaceId () {
+      this.axios.defaults.headers.post['Content-Type'] = 'application/json'
+      this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
+      this.axios.post('api/assess/getFace/' + localStorage.getItem('bizId'), {
+      })
+        .then(this.getFaceIdInfoSucc)
+        .catch(this.getFaceIdInfoerror)
+    },
+    getFaceIdInfoSucc (res) {
+      alert(JSON.stringify(res))
+      res = res.data.data
+      if (res.data === 'PASS') {
+        this.msg = require('../../../assets/image/success.png')
+        this.Tip = '提交成功'
+      } else {
+        this.msg = require('../../../assets/image/error.png')
+        this.Tip = '提交失败'
+      }
+    },
+    getFaceIdInfoerror (res) {
+      this.$toast.center('网络错误')
+    },
+    clickSubmitInfo () {
+      this.$router.push({path: '/Jump', query: {title: document.title}})
+    },
     goGrdoupRecor () {
       const TIME_COUNT = 3
       if (!this.timer) {
@@ -29,6 +56,7 @@ export default {
             clearInterval(this.timer)
             this.timer = null
             // 跳转的页面写在此处
+            // this.$router.push({path: '/Jump', query: {title: document.title}})
           }
         }, 1000)
       }
@@ -37,6 +65,7 @@ export default {
   created () {
     // 根据需求确定在哪里调用
     this.goGrdoupRecor()
+    this.getFaceId()
   }
 }
 </script>

@@ -97,12 +97,6 @@ export default {
     // 上传身份证正面
     changeImagePositive (e) {
       var file = e.target.files[0]
-      var reader = new FileReader()
-      var that = this
-      reader.readAsDataURL(file)
-      reader.onload = function (e) {
-        that.avatar = this.result
-      }
       let param = new FormData()
       param.append('moduleName', 'H5')
       param.append('version', '3.0')
@@ -112,7 +106,13 @@ export default {
       }
       this.axios.post('http://fileserver.test.api.aishangjinrong.com/attachment/v1.4', param, config)
         .then(response => {
+          if (response.data.success === false) {
+            this.$toast('身份证照片过大！')
+            return
+          }
+          this.avatar = response.data.data[0].filePath
           this.idCardBackImg = response.data.data[0].filePath
+          this.avatar = response.data.data[0].filePath
           this.$toast('身份证正面上传成功')
         })
         .catch(response => {
@@ -123,12 +123,6 @@ export default {
     // 上传身份证反面
     changeImageCon (e) {
       var file = e.target.files[0]
-      var reader = new FileReader()
-      var that = this
-      reader.readAsDataURL(file)
-      reader.onload = function (e) {
-        that.avatarfan = this.result
-      }
       let param = new FormData()
       param.append('moduleName', 'H5')
       param.append('version', '3.0')
@@ -138,12 +132,18 @@ export default {
       }
       this.axios.post('http://fileserver.test.api.aishangjinrong.com/attachment/v1.4', param, config)
         .then(response => {
+          console.log(response.data)
+          if (response.data.success === false) {
+            this.$toast('身份证照片过大！')
+            return
+          }
+          this.avatarfan = response.data.data[0].filePath
           this.idCardFrontImg = response.data.data[0].filePath
           this.$toast('身份证反面上传成功')
         })
         .catch(response => {
           this.$toast('网络错误')
-          console.log(response)
+          alert(response)
         })
     },
     // 获取家庭子组件传来选中的省市区
@@ -175,10 +175,10 @@ export default {
       }
     },
     clickSubmitInfo () {
-      if (this.idCardBackImg === '' || this.idCardFrontImg === '') {
-        this.$toast.center('请上传身份证正反面！')
-        return
-      }
+      // if (this.idCardBackImg === '' || this.idCardFrontImg === '') {
+      //   this.$toast.center('请上传身份证正反面！')
+      //   return
+      // }
       if (this.isRadioimg === true) {
         this.$toast.center('请勾选《小雨点信息授权函》')
         return
@@ -202,16 +202,20 @@ export default {
         livingDistrict: this.livingDistrict,
         livingAddress: this.livingAddress,
         alternatePhone: this.alternatePhone,
-        idCardBackImg: this.idCardBackImg,
-        idCardFrontImg: this.idCardFrontImg
+        idCardPositiveUrl: '11', // 正面  this.idCardBackImg
+        idCardBackUrl: '222' // 反面 this.idCardFrontImg
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
-      console.log(res)
       res = res.data
       this.$toast(res.msg)
+      if (res.code === 200) {
+        console.log(res.data.bizId)
+        localStorage.setItem('bizId', res.data.bizId)
+        window.location.href = 'https://api.megvii.com/faceid/lite/do' + '?token=' + res.data.token
+      }
     },
     getMaininfoerror (res) {
       this.$toast('网络错误')

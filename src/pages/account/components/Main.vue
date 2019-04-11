@@ -5,7 +5,7 @@
       <span>您还未添加银行卡</span>
     </div>
     <div class="box">
-      <div class="list" v-for="item of main" :key="item.index">
+      <div class="list" v-for="item of main" :key="item.index" @click="routerTo(item)">
         <img :src="item.logo" />
         <div class="card">
           <div>{{item.bankName}}<span>({{item.bankName}}{{item.bankCardNumberSuffix}})</span></div>
@@ -26,6 +26,11 @@ export default {
     }
   },
   methods: {
+    // 跳转更换收款账户页面
+    routerTo (res) {
+      console.log(res)
+      this.$router.push({path: '/Borrow', query: {bankCardNumberSuffix: res.bankCardNumberSuffix, bankName: res.bankName, bankId: res.id, isDefault: res.isDefault, bankLogo: res.logo}})
+    },
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token

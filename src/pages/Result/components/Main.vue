@@ -6,7 +6,7 @@
       <div class="money">{{amount}}元</div>
       <div class="tip">预计到账时间：{{insertTime}}</div>
     </div>
-    <div class="button">返回(3)</div>
+    <div class="button" @click="clickSubmitInfo()">返回({{count}})</div>
   </div>
 </template>
 <script>
@@ -16,10 +16,30 @@ export default {
     return {
       amount: '',
       insertTime: '',
-      borrowStatus: ''
+      borrowStatus: '',
+      count: ''
     }
   },
   methods: {
+    clickSubmitInfo () {
+      this.$router.push({path: '/Jump', query: {title: document.title}})
+    },
+    goGrdoupRecor () {
+      const TIME_COUNT = 3
+      if (!this.timer) {
+        this.count = TIME_COUNT
+        this.timer = setInterval(() => {
+          if (this.count > 0 && this.count <= TIME_COUNT) {
+            this.count--
+          } else {
+            clearInterval(this.timer)
+            this.timer = null
+            // 跳转的页面写在此处
+            this.$router.push({path: '/Jump', query: {title: document.title}})
+          }
+        }, 1000)
+      }
+    },
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
@@ -39,6 +59,7 @@ export default {
     }
   },
   mounted () {
+    this.goGrdoupRecor()
     this.readInfo()
   }
 }

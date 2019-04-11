@@ -10,7 +10,7 @@
         <div class="money">{{item.waitAmountPayableSum}}</div>
         <span class="left">待还总额</span>
         <span class="right">剩余<i>{{item.remainingPeriods}}</i>期</span>
-        <div class="list-tip">{{item.insertTime}} 借款{{item.principal}}</div>
+        <div class="list-tip">{{item.insertTime  | time}} 借款{{item.principal}}</div>
       </div>
     </div>
   </div>
@@ -26,11 +26,18 @@ export default {
       count: ''
     }
   },
+  // 时间戳转日期
+  filters: {
+    time: function time (value) {
+      var d = new Date(parseInt(value))
+      return (d.getFullYear()) + '-' + (d.getMonth() + 1 > 9 ? d.getMonth() + 1 : '0' + (d.getMonth() + 1)) + '-' + (d.getDate() > 9 ? d.getDate() : '0' + d.getDate())
+    }
+  },
   methods: {
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentPlan' + '/1', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentPlan' + '/CUST2018112719423916018', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)

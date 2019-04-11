@@ -355,7 +355,7 @@ export default {
   margin-left: 0.72rem;
 }
 .address{
-  position:absolute;
+  position:fixed;
   bottom:0;
   left:0;
   z-index:999999;

@@ -115,6 +115,11 @@ export default new Router({
       meta: {
         title: '借款详情'
       }
+    },
+    {
+      path: '/Jump',
+      name: 'Jump',
+      component: () => import('@/pages/Jump/Jump')
     }
   ]
 })

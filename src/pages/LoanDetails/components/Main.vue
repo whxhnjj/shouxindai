@@ -1,7 +1,8 @@
 <template>
 <div>
   <div class="header">
-    <div class="state">{{data.repaymentStatus}}</div>
+    <div class="state" v-if="data.repaymentStatus === '10' || data.repaymentStatus === '30'">还款中</div>
+    <div class="state" v-if="data.repaymentStatus === '20'">已结清</div>
     <div class="header-info">订单状态</div>
   </div>
   <div class="box">
@@ -51,7 +52,7 @@
         <span class="periods"><i>{{item.period}}</i>/{{item.periods}}</span>
         <span class="main-mon">{{item.amountPayable}}元</span>
       </div>
-      <div class="main-date">{{item.acRepaymentTime}}</div>
+      <div class="main-date">{{item.acRepaymentTime | time}}</div>
     </div>
   </div>
   <!--默认扣款账户-->
@@ -71,18 +72,24 @@ export default {
       main: []
     }
   },
+  // 时间戳转日期
+  filters: {
+    time: function time (value) {
+      var d = new Date(parseInt(value))
+      return ('结清时间' + d.getFullYear()) + '年' + (d.getMonth() + 1 > 9 ? d.getMonth() + 1 : '0' + (d.getMonth() + 1)) + '月' + (d.getDate() > 9 ? d.getDate() : '0' + d.getDate()) + '日'
+    }
+  },
   methods: {
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowDetail' + '/1', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/borrowDetail' + '/' + this.$route.query.orderNo, {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
       res = res.data
-      console.log(res)
       this.data = res.data
       this.main = res.data.borrowRecordList
     },
