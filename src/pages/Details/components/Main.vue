@@ -128,11 +128,11 @@ export default {
             this.repaymentAmountSz.push(item.amountPayable)
           }
           if (item.select === true) {
-            var str = this.periodsSz.indexOf(index + 1)
-            var strAmountSz = this.repaymentAmountSz.indexOf(index + 1)
+            var strTo = this.periodsSz.indexOf(index + 1)
+            var strAmountSzTo = this.repaymentAmountSz.indexOf(index + 1)
             if (str > -1) {
-              this.periodsSz.splice(str, 1)
-              this.repaymentAmountSz.splice(strAmountSz, 1)
+              this.periodsSz.splice(strTo, 1)
+              this.repaymentAmountSz.splice(strAmountSzTo, 1)
             }
           }
         }
