@@ -6,7 +6,7 @@
       <div class="sun">共<i>{{count}}</i>笔</div>
     </div>
     <div class="main">
-      <div class="list"  v-for="item of main" :key="item.index">
+      <div class="list"  v-for="item of main" :key="item.index" @click="RouterTo(item.orderNo)">
         <div class="money">{{item.waitAmountPayableSum}}</div>
         <span class="left">待还总额</span>
         <span class="right">剩余<i>{{item.remainingPeriods}}</i>期</span>
@@ -34,10 +34,14 @@ export default {
     }
   },
   methods: {
+    // 跳转至还款详情
+    RouterTo (orderNo) {
+      this.$router.push({path: '/Details', query: {orderNo: orderNo}})
+    },
     readInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentPlan' + '/CUST2018112719423916018', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/my/repaymentPlan', {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)

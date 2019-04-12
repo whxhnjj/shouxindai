@@ -78,7 +78,7 @@ export default {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
       this.axios.post(this.GLOBAL.axIosUrl + 'api/initiativeRepayment', {
-        orderNo: '201904111950226609',
+        orderNo: this.$route.query.orderNo,
         periodsSz: this.periodsSz,
         repaymentAmountSz: this.repaymentAmountSz
       })
@@ -87,7 +87,7 @@ export default {
     },
     getRepaymentMainInfoSucc (res) {
       if (res.data.code === 200) {
-        this.$router.go(0)
+        this.reload()
         this.$toast.center(res.data.msg)
       } else {
         this.$toast.center('还款失败')
@@ -159,14 +159,13 @@ export default {
     DetailsInfo () {
       this.axios.defaults.headers.post['Content-Type'] = 'application/json'
       this.axios.defaults.headers.post['token'] = this.GLOBAL.Token
-      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentDetail' + '/201904111950226609', {
+      this.axios.post(this.GLOBAL.axIosUrl + 'api/repaymentDetail/' + this.$route.query.orderNo, {
       })
         .then(this.getMainInfoSucc)
         .catch(this.getMaininfoerror)
     },
     getMainInfoSucc (res) {
       res = res.data.data
-      console.log(res)
       this.amountPayableCount = res.amountPayableCount
       this.productList = res.webRepaymentDetailsResponseDTOs
       let _this = this

@@ -5,14 +5,6 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: '/UpLoad',
-      name: 'UpLoad',
-      component: () => import('@/pages/UpLoad/UpLoad'),
-      meta: {
-        title: '上传图片'
-      }
-    },
-    {
       path: '/ApplyInfo',
       name: 'ApplyInfo',
       component: () => import('@/pages/ApplyInfo/ApplyInfo'),
